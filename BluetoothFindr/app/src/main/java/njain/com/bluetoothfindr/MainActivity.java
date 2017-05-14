@@ -8,6 +8,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -16,6 +20,7 @@ import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
@@ -27,6 +32,7 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,41 +43,25 @@ import java.util.SortedSet;
 
 // This app discovers the bluetooth devices acting as iBeacons around it
 
-public class MainActivity extends AppCompatActivity implements BeaconConsumer{
+public class MainActivity extends AppCompatActivity implements BeaconConsumer, SensorEventListener{
 
     private BeaconManager baconManager; // to manage bacon
 
     TextView beaconDistancesTV;
 
+    TextView compassTV;
+
     private String textUpdate;
 
     private ArrayList<String> uuidArray;
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    private SensorManager mSensorManager;
+    private Sensor sensor;
+    private float degree; // not the deodorant!
+    private String direction = "west"; // which way do you want to face boi
 
-        setContentView(R.layout.activity_main);
-
-        uuidArray = new ArrayList<String>();
-
-        beaconDistancesTV = (TextView) findViewById(R.id.beaconDistancesTV);
-
-        // get forking permissions (what a crisis)
-        checkBTPermissions();
-
-        baconManager = BeaconManager.getInstanceForApplication(this);
-        // add iBeacons to the list since they are proprietary beacons
-        baconManager.getBeaconParsers().add(new BeaconParser()
-                .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
-        // iBeacon = m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24
-
-        baconManager.bind(this);
-
-        beaconDistancesTV.setText(textUpdate);
-
-
-    }
+    private int fingers = 0;
+    private int max = 0;
 
 
     @Override
@@ -79,9 +69,14 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // point yourself north
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
         uuidArray = new ArrayList<String>();
 
         beaconDistancesTV = (TextView) findViewById(R.id.beaconDistancesTV);
+        compassTV = (TextView) findViewById(R.id.compassTV);
 
         // get forking permissions (what a crisis)
         checkBTPermissions();
@@ -96,6 +91,37 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
 
         beaconDistancesTV.setText(textUpdate);
 
+//             point north
+//        while(Math.abs(degree - 0) < 7) {
+//            if (degree > 0) {
+//                sendMessage("left");
+//            }
+//            else {
+//                sendMessage("right");
+//            }
+//        }
+
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (sensor != null) {
+            mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            Toast.makeText(MainActivity.this, "come on dude", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -127,7 +153,9 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
                         // only update the ui if there is a new uuid (change distance ahhh)
 //                        String uuid = beacon.getId1().toString();
 
+
                         textUpdate += "\nUU: " + beacon.getId1().toString()
+                                + "\nMajor: " + beacon.getId2().toString()
                                 + "\nDistance: " + beacon.getDistance() + " meters away\n"
                                 + "______________________________________\n";
 
@@ -192,13 +220,13 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
 //                    String currentText = beaconDistancesTV.getText().toString();
 //                    if (!textUpdate.equals(currentText)) {
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                final String temp = textUpdate;
-                                beaconDistancesTV.setText(temp);
-                            }
-                        });
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final String temp = textUpdate;
+                            beaconDistancesTV.setText(temp);
+                        }
+                    });
 //                    }
 
 //                    Log.d("DO NOT READ","I spy with my little eye " + beacons.iterator().next().getDistance()
@@ -218,7 +246,18 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
 
     }
 
+    // send a right or left to the who even knows why weraweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    private void sendMessage(String direction) {
 
+        Log.d("Direction", direction);
+
+        // put some delay
+//        URL url = new URL('http://www.');
+
+    }
+
+
+    // check permissions
     private void checkBTPermissions() {
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
             int permissionCheck = this.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
@@ -233,6 +272,35 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
     }
 
 
+    @Override
+    public boolean onTouchEvent(MotionEvent e) {
+
+        Log.d("Clean batch", Integer.toString(e.getPointerCount()));
+
+        if (e.getPointerCount() > max){
+            max = e.getPointerCount();
+        }
+
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                break;
+            case MotionEvent.ACTION_UP:
+                Log.d("batch", Integer.toString(max));
+
+                // max here
+                if (max == 1)
+                    direction = "west";
+                else if (max == 2)
+                    direction = "south";
+                else if (max == 3)
+                    direction = "east";
+
+                max = 0;
+                break;
+        }
+        return true;
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -242,4 +310,55 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
     }
 
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // do something
+        degree = event.values[0];
+        compassTV.setText(Float.toString(degree));
+
+//        Log.d("Direction", direction);
+        // align direction
+        if (direction.equals("north")) {
+            // point north
+            if (degree > 10 && degree < 180) {
+                sendMessage("left");
+            }
+            else if (degree < 350 && degree > 180) {
+                sendMessage("right");
+            }
+        }
+        else if (direction.equals("east")) {
+            // point south
+            if (degree > 95 && degree < 270) {
+                sendMessage("left");
+            }
+            else if (degree < 85 && degree > 0) {
+                sendMessage("right");
+            }
+        }
+        else if (direction.equals("south")) {
+            // point east meets west
+            if (degree > 185 && degree < 359) {
+                sendMessage("left");
+            }
+            else if (degree < 175 && degree > 0) {
+                sendMessage("right");
+            }
+        }
+        else if (direction.equals("west")) {
+            // go west yung man
+            if (degree > 275 && degree < 360) {
+                sendMessage("left");
+            }
+            else if (degree < 265 && degree > 90) {
+                sendMessage("right");
+            }
+        }
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // do nothing
+    }
 } // end of MainActivity
