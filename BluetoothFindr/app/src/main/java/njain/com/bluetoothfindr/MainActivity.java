@@ -12,11 +12,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +34,10 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, S
 
     private int fingers = 0;
     private int max = 0;
+
+    private String paperdotio = "";
 
 
     @Override
@@ -247,13 +255,74 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, S
     }
 
     // send a right or left to the who even knows why weraweeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-    private void sendMessage(String direction) {
+    private void sendMessage(final String direction) {
 
         Log.d("Direction", direction);
 
-        // put some delay
-//        URL url = new URL('http://www.');
+        paperdotio = direction;
 
+//        direction = final direc
+
+        // put some delay
+        SystemClock.sleep(1500);
+        HttpTask shutuprishi = new HttpTask();
+        shutuprishi.execute();
+
+    }
+
+    class HttpTask extends AsyncTask<Void, Void, Void> {
+
+        public HttpTask() {
+            super();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+
+            // send request
+            URL url;
+            HttpURLConnection urlConnection = null;
+            try {
+                final String no = paperdotio;
+                url = new URL("http://97d0578c.ngrok.io/" + no);
+                Log.d("tanmay", url.toString());
+
+                urlConnection = (HttpURLConnection) url
+                        .openConnection();
+
+                InputStream in = urlConnection.getInputStream();
+//
+                InputStreamReader isw = new InputStreamReader(in);
+
+                int data = isw.read();
+                while (data != -1) {
+                    char current = (char) data;
+                    data = isw.read();
+                    System.out.print(current);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+            }
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
     }
 
 
@@ -288,12 +357,57 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, S
                 Log.d("batch", Integer.toString(max));
 
                 // max here
-                if (max == 1)
+                if (max == 1) {
                     direction = "west";
-                else if (max == 2)
+                }
+                else if (max == 2) {
                     direction = "south";
-                else if (max == 3)
+
+                }
+                else if (max == 3) {
                     direction = "east";
+
+                }
+
+
+//        Log.d("Direction", direction);
+                // align direction
+                if (direction.equals("north")) {
+                    // point north
+                    if (degree > 10 && degree < 180) {
+                        sendMessage("left");
+                    }
+                    else if (degree < 350 && degree > 180) {
+                        sendMessage("right");
+                    }
+                }
+                else if (direction.equals("east")) {
+                    // point south
+                    if (degree > 95 && degree < 270) {
+                        sendMessage("left");
+                    }
+                    else if (degree < 85 && degree > 0) {
+                        sendMessage("right");
+                    }
+                }
+                else if (direction.equals("south")) {
+                    // point east meets west
+                    if (degree > 185 && degree < 359) {
+                        sendMessage("left");
+                    }
+                    else if (degree < 175 && degree > 0) {
+                        sendMessage("right");
+                    }
+                }
+                else if (direction.equals("west")) {
+                    // go west yung man
+                    if (degree > 275 && degree < 360) {
+                        sendMessage("left");
+                    }
+                    else if (degree < 265 && degree > 90) {
+                        sendMessage("right");
+                    }
+                }
 
                 max = 0;
                 break;
@@ -315,45 +429,45 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, S
         // do something
         degree = event.values[0];
         compassTV.setText(Float.toString(degree));
-
-//        Log.d("Direction", direction);
-        // align direction
-        if (direction.equals("north")) {
-            // point north
-            if (degree > 10 && degree < 180) {
-                sendMessage("left");
-            }
-            else if (degree < 350 && degree > 180) {
-                sendMessage("right");
-            }
-        }
-        else if (direction.equals("east")) {
-            // point south
-            if (degree > 95 && degree < 270) {
-                sendMessage("left");
-            }
-            else if (degree < 85 && degree > 0) {
-                sendMessage("right");
-            }
-        }
-        else if (direction.equals("south")) {
-            // point east meets west
-            if (degree > 185 && degree < 359) {
-                sendMessage("left");
-            }
-            else if (degree < 175 && degree > 0) {
-                sendMessage("right");
-            }
-        }
-        else if (direction.equals("west")) {
-            // go west yung man
-            if (degree > 275 && degree < 360) {
-                sendMessage("left");
-            }
-            else if (degree < 265 && degree > 90) {
-                sendMessage("right");
-            }
-        }
+//
+////        Log.d("Direction", direction);
+//        // align direction
+//        if (direction.equals("north")) {
+//            // point north
+//            if (degree > 10 && degree < 180) {
+//                sendMessage("left");
+//            }
+//            else if (degree < 350 && degree > 180) {
+//                sendMessage("right");
+//            }
+//        }
+//        else if (direction.equals("east")) {
+//            // point south
+//            if (degree > 95 && degree < 270) {
+//                sendMessage("left");
+//            }
+//            else if (degree < 85 && degree > 0) {
+//                sendMessage("right");
+//            }
+//        }
+//        else if (direction.equals("south")) {
+//            // point east meets west
+//            if (degree > 185 && degree < 359) {
+//                sendMessage("left");
+//            }
+//            else if (degree < 175 && degree > 0) {
+//                sendMessage("right");
+//            }
+//        }
+//        else if (direction.equals("west")) {
+//            // go west yung man
+//            if (degree > 275 && degree < 360) {
+//                sendMessage("left");
+//            }
+//            else if (degree < 265 && degree > 90) {
+//                sendMessage("right");
+//            }
+//        }
 
     }
 
