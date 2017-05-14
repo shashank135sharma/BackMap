@@ -27,7 +27,12 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.SortedSet;
 
 
 // This app discovers the bluetooth devices acting as iBeacons around it
@@ -36,13 +41,22 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
 
     private BeaconManager baconManager; // to manage bacon
 
-//    TextView beaconDistances
+    TextView beaconDistancesTV;
+
+    private String textUpdate;
+
+    private ArrayList<String> uuidArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        uuidArray = new ArrayList<String>();
+
+        beaconDistancesTV = (TextView) findViewById(R.id.beaconDistancesTV);
+
+        // get forking permissions (what a crisis)
         checkBTPermissions();
 
         baconManager = BeaconManager.getInstanceForApplication(this);
@@ -53,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
 
         baconManager.bind(this);
 
+        beaconDistancesTV.setText(textUpdate);
+
     }
 
     @Override
@@ -62,8 +78,104 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
 
                 if (beacons.size() > 0) {
-                    Log.d("DO NOT READ","I spy with my little eye " + beacons.iterator().next().getDistance()
-                            + " metres away");
+
+//                    int counter = 0;
+                    textUpdate = "";
+//                    SortedSet<Beacon> sortedBeacons = (SortedSet) beacons;
+//
+//                    Collections.sort(beacons, new Comparator<Object>() {
+//                        @Override
+//                        public int compare(Beacon o1, Beacon o2) {
+//
+////                            o1 = (Beacon) o1;
+//
+//                            return new Integer(o1.getId1().toString().compareTo(o2.getId1().toString()));
+//                        }
+//                    });
+
+                    for (Beacon beacon : beacons) {
+
+//                        int numOfBeacons = beacons.size();
+
+                        // only update the ui if there is a new uuid (change distance ahhh)
+//                        String uuid = beacon.getId1().toString();
+
+                        textUpdate += "\nUU: " + beacon.getId1().toString()
+                                + "\nDistance: " + beacon.getDistance() + " meters away\n"
+                                + "______________________________________\n";
+
+
+//                        if (!uuidArray.contains(uuid)) {
+//
+//                            uuidArray.add(uuid);
+//
+//                            textUpdate += "\nUU: " + beacon.getId1().toString()
+//                                    + "\nDistance: " + beacon.getDistance() + " meters away\n"
+//                                    + "______________________________________\n";
+//
+////                            Log.i("BACON", textUpdate);
+//
+//                        }
+//                        else {
+//                            String currentText = beaconDistancesTV.getText().toString();
+//
+//                            ArrayList<Integer> startIndices = new ArrayList<Integer>();
+//                            ArrayList<Integer> endIndices = new ArrayList<Integer>();
+//
+//                            int counter = -1;
+//                            for (char c : currentText.toCharArray()) {
+//                                counter++;
+//
+//                                if (c == 'D')
+//                                    startIndices.add(counter);
+//
+//                                if (c == 'y')
+//                                    endIndices.add(counter + 1);
+//
+//                            }
+////
+////                            int startIndex = currentText.indexOf('D');
+////                            int endIndex = currentText.indexOf('y') + 1;
+//
+//                            String adder = "";
+//
+//                            for (int i = 0; i < startIndices.size(); i++) {
+//
+//
+//                                int startIndex = startIndices.get(i);
+//                                int endIndex = endIndices.get(i);
+//
+//                                String replaceMe = currentText.substring(startIndex, endIndex);
+//                                String newStr = "Distance: " + beacon.getDistance() + " meters away";
+//
+//                                adder = currentText.replace(replaceMe, newStr);
+//
+//                            }
+//
+//                            textUpdate = adder;
+//
+//
+//                            //currentText.replace("Distance: ");
+//                        }
+
+
+                    }
+
+                    // only update ui if there is a new uuid
+//                    String currentText = beaconDistancesTV.getText().toString();
+//                    if (!textUpdate.equals(currentText)) {
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                final String temp = textUpdate;
+                                beaconDistancesTV.setText(temp);
+                            }
+                        });
+//                    }
+
+//                    Log.d("DO NOT READ","I spy with my little eye " + beacons.iterator().next().getDistance()
+//                            + " metres away");
                 }
 
             }
