@@ -51,8 +51,11 @@
     require([
       "esri/Map",
       "esri/views/MapView",
+	  "esri/layers/FeatureLayer",
+	  "esri/renderers/UniqueValueRenderer",
+
       "dojo/domReady!"
-    ], function(Map, MapView) {
+    ], function(Map, MapView, FeatureLayer, UniqueValueRenderer) {
 
       var map = new Map({
         basemap: "streets"
@@ -76,7 +79,30 @@
 	    console.log(lat);
 	    console.log(lng);
 
-	    // calculate distance to each place
+	    // var point = new Point({lat, lng});	
+
+	    whichStop = 0;
+
+	    minLat = 1000;
+	    minLng = 1000;
+	    // calculate which stop we are at
+	    for (i = 0; i < latArray.length; i++) {
+	    	
+	    	plat = latArray[i];
+	    	plng = lngArray[i];
+
+	    	distanceLat = Math.abs(lat - plat);
+	    	distanceLng = Math.abs(lng - plng);
+
+	    	if (distanceLat < minLat && distanceLng < minLng) {
+	    		minLat = distanceLat;
+	    		minLng = distanceLng;
+	    		whichStop = i;
+	    	}
+
+	    }
+
+	    console.log('we are at stop ' + whichStop)
 
 
 	});
