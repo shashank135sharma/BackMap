@@ -48,6 +48,33 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer{
     private ArrayList<String> uuidArray;
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        setContentView(R.layout.activity_main);
+
+        uuidArray = new ArrayList<String>();
+
+        beaconDistancesTV = (TextView) findViewById(R.id.beaconDistancesTV);
+
+        // get forking permissions (what a crisis)
+        checkBTPermissions();
+
+        baconManager = BeaconManager.getInstanceForApplication(this);
+        // add iBeacons to the list since they are proprietary beacons
+        baconManager.getBeaconParsers().add(new BeaconParser()
+                .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+        // iBeacon = m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24
+
+        baconManager.bind(this);
+
+        beaconDistancesTV.setText(textUpdate);
+
+
+    }
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

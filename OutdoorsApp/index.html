@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Get started with MapView - Create a 2D map - 4.3</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.3/"></script>
+
+  <script>
+
+// send http request
+// http://www.mapquestapi.com/directions/v2/route?key=KEY&from=Clarendon Blvd,Arlington,VA&to=2400+S+Glebe+Rd,+Arlington,+VA
+
+	// mozilla phirephox datum
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", 'http://www.mapquestapi.com/directions/v2/route?key=zmC5t0qcQIMEcrgWczCGvSEdsXiqcukL&routeType=pedestrian&from=299 South Street, NY NY&to=31 Rutgers Street, NY NY', false ); // false for synchronous request
+    xmlHttp.send( null );
+
+    var jsonresponse = JSON.parse(xmlHttp.responseText);
+    // console.log(jsonresponse);
+    console.log(jsonresponse.route.legs[0].maneuvers)
+
+    latArray = [];
+    lngArray = []
+
+    for (var i = 0; i < jsonresponse.route.legs[0].maneuvers.length; i++) {
+     	lat = jsonresponse.route.legs[0].maneuvers[i].startPoint.lat;
+
+     	lng = jsonresponse.route.legs[0].maneuvers[i].startPoint.lng;
+
+     	console.log(lat, lng);
+
+     	latArray.push(lat);
+     	lngArray.push(lng);
+
+     }; 
+
+    // set up map
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "dojo/domReady!"
+    ], function(Map, MapView) {
+
+      var map = new Map({
+        basemap: "streets"
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        map: map,
+        zoom: 17,
+        center: [-73.9864715,40.70961339999999]
+      });
+
+    });
+
+    navigator.geolocation.getCurrentPosition(function(position) {
+
+	    // Get the coordinates of the current position.
+	    var lat = position.coords.latitude;
+	    var lng = position.coords.longitude;
+
+	    console.log(lat);
+	    console.log(lng);
+
+	    // calculate distance to each place
+
+
+	});
+
+    // refresh loop
+    // while (true) {
+
+    	// get current location
+		// navigator.geolocation.getCurrentPosition(function(location) {
+		//   console.log(location.coords.latitude);
+		//   console.log(location.coords.longitude);
+		//   console.log(location.coords.accuracy);
+		// });
+
+    // }
+
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>

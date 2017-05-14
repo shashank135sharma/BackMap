@@ -3,6 +3,12 @@
 buildscript {
     repositories {
         jcenter()
+
+//        // Esri goods
+//        maven {
+//            url 'https://esri.bintray.com/arcgis'
+//        }
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
